@@ -91,6 +91,11 @@ installMongodb(){
     echo "deb http://repo.mongodb.org/apt/ubuntu trusty/mongodb-org/3.2 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.2.list
     sudo apt-get update
     sudo apt-get install -y mongodb-org=$MONGODB_VERSION mongodb-org-server=$MONGODB_VERSION mongodb-org-shell=$MONGODB_VERSION mongodb-org-mongos=$MONGODB_VERSION mongodb-org-tools=$MONGODB_VERSION
+    sudo touch /etc/php5/mods-available/mongodb.ini
+    sudo echo "extension=mongodb.so" >> /etc/php5/mods-available/mongodb.ini
+    php5enmod mongodb
+    sudo pecl install mongodb
+    service apache2 restart
 }
 
 installMonodevelop(){
