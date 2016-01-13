@@ -193,8 +193,8 @@ installComposer(){
 installJDK(){
     add-apt-repository ppa:webupd8team/java
     apt-get update
-    apt-get install oracle-java8-installer
-    apt-get install oracle-java8-set-default
+    apt-get install -y oracle-java8-installer
+    apt-get install -y oracle-java8-set-default
 }
 
 installFrameworkPHP(){
@@ -218,31 +218,31 @@ installMonodevelop(){
     apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF
     echo "deb http://download.mono-project.com/repo/debian wheezy main" | sudo tee /etc/apt/sources.list.d/mono-xamarin.list
     apt-get update
-    apt-get install mono-devel
+    apt-get install -y mono-devel
 }
 
 installKomodo(){
     add-apt-repository ppa:mystic-mirage/komodo-edit
     apt-get update
-    apt-get install komodo-edit
+    apt-get install -y komodo-edit
 }
 
 installAudacious(){
     add-apt-repository ppa:nilarimogard/webupd8
     apt-get update
-    apt-get install audacious audacious-plugins
+    apt-get install -y audacious audacious-plugins
 }
 
 installGoogleChrome(){
     sh -c 'echo "deb http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list'
     apt-get update 
-    apt-get install google-chrome-stable
+    apt-get install -y google-chrome-stable
 }
 
 installSublimeText(){
     add-apt-repository ppa:webupd8team/sublime-text-3
     apt-get update
-    apt-get sublime-text-installer
+    apt-get install -y sublime-text-installer
 }
 
 installPhuml(){
