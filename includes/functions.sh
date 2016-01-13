@@ -29,7 +29,7 @@ EOF
 
 autoInstallAll(){
     installPKG
-    sudo npm install bower -g
+    npm install bower -g
     . ./includes/env.sh
     installExtra
 }
@@ -48,8 +48,12 @@ installExtra(){
     installDrush
 }
 
+installCentOS(){
+    installComposer
+}
+
 installPKG(){
-	if [ "$PKGSTOINSTALL" != "" ]; then
+	if [ "$PKGSTOINSTALL_DEBIAN" != "" ]; then
 		echo -n "Some dependencies are missing. Want to install them? (Y/n): "
 		read SURE
 		if [[ $SURE = "Y" || $SURE = "y" ]]; then
@@ -68,31 +72,35 @@ installPKG(){
                fi
                service apache2 restart
             elif which yum &> /dev/null; then
-                installRPMPackages
-				yum install -y $PKGSTOINSTALL_REDHEAD
-                yum replace php-common --replace-with=php56w-common
-                systemctl enable httpd.service
+                installCentOSRPMPackages
+		yum install -y $PKGSTOINSTALL_REDHEAD
+               # yum replace php-common --replace-with=php56w-common
                 systemctl start httpd.service
+                systemctl enable httpd.service
+		systemctl start mariadb.service
+		systemctl enable mariadb.service
                 firewall-cmd --permanent --zone=public --add-service=http
                 systemctl restart firewalld.service
-                installScriptForApache
+                installCentOSScriptForApache
+		installCentOS
             fi
         fi
     fi
 }
 
-installRPMPackages(){
+installCentOSRPMPackages(){
     sudo rpm -Uvh https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
     sudo rpm -Uvh https://mirror.webtatic.com/yum/el7/webtatic-release.rpm
 }
 
-installScriptForApache(){
-    mkdir /etc/httpd/sites-available sites-enabled
+installCentOSScriptForApache(){
+    sudo mkdir /etc/httpd/sites-available 
+    sudo mkdir /etc/httpd/sites-enabled
     
-    echo 'IncludeOptional sites-enabled/*.conf' >> /etc/httpd/conf/httpd.conf
+    sudo echo 'IncludeOptional sites-enabled/*.conf' >> /etc/httpd/conf/httpd.conf
     
-    touch /etc/httpd/sites-available/default.conf
-    echo '<VirtualHost *:80>
+    sudo touch /etc/httpd/sites-available/default.conf
+    sudo echo '<VirtualHost *:80>
         ServerName localhost
         DocumentRoot "/var/www"
                 <Directory "/var/www">
@@ -108,10 +116,10 @@ installScriptForApache(){
         </IfModule>
         ErrorLog  /var/log/httpd/error.log
         CustomLog /var/log/httpd/access.log combined
-</VirtualHost>' >> /etc/httpd/sites-available/default.conf
+</VirtualHost>' > /etc/httpd/sites-available/default.conf
 
-    touch /usr/local/bin/a2ensite
-    echo '#!/bin/bash
+    sudo touch /usr/local/bin/a2ensite
+    sudo echo '#!/bin/bash
 if test -d /etc/httpd/sites-available && test -d /etc/httpd/sites-enabled  ; then
 echo "-----------------------------------------------"
 else
@@ -143,11 +151,11 @@ else
 echo  -e "Virtual host $avail does not exist!\nPlease see available virtual hosts:\n$site"
 exit 0
 fi
-fi' >> /usr/local/bin/a2ensite
+fi' > /usr/local/bin/a2ensite
 
-    touch /usr/local/bin/a2dissite
+    sudo touch /usr/local/bin/a2dissite
     
-    echo '#!/bin/bash
+    sudo echo '#!/bin/bash
 avail=/etc/httpd/sites-enabled/$1.conf
 enabled=/etc/httpd/sites-enabled
 site=`ls /etc/httpd/sites-enabled/`
@@ -171,22 +179,23 @@ else
 echo  -e "Success! $avail has been removed!\nPlease restart Apache: sudo systemctl restart httpd"
 exit 0
 fi
-fi' >> /usr/local/bin/a2dissite
-    chmod +x /usr/local/bin/a2*
-    a2ensite default
-    sleep 5
-    systemctl restart httpd
+fi' > /usr/local/bin/a2dissite
+    sudo chmod +x /usr/local/bin/a2*
+    sudo cp /usr/local/bin/a2* /bin
+    sudo a2ensite default
+    sleep 2
+    sudo systemctl restart httpd
 }
 
 installComposer(){
-    curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+    sudo curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 }
 
 installJDK(){
-    sudo add-apt-repository ppa:webupd8team/java
-    sudo apt-get update
-    sudo apt-get install oracle-java8-installer
-    sudo apt-get install oracle-java8-set-default
+    add-apt-repository ppa:webupd8team/java
+    apt-get update
+    apt-get install oracle-java8-installer
+    apt-get install oracle-java8-set-default
 }
 
 installFrameworkPHP(){
@@ -197,49 +206,49 @@ installFrameworkPHP(){
 
 installMongodb(){
     echo "deb http://repo.mongodb.org/apt/ubuntu trusty/mongodb-org/3.2 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.2.list
-    sudo apt-get update
-    sudo apt-get install -y mongodb-org=$MONGODB_VERSION mongodb-org-server=$MONGODB_VERSION mongodb-org-shell=$MONGODB_VERSION mongodb-org-mongos=$MONGODB_VERSION mongodb-org-tools=$MONGODB_VERSION
-    sudo touch /etc/php5/mods-available/mongodb.ini
-    sudo echo "extension=mongodb.so" >> /etc/php5/mods-available/mongodb.ini
+    apt-get update
+    apt-get install -y mongodb-org=$MONGODB_VERSION mongodb-org-server=$MONGODB_VERSION mongodb-org-shell=$MONGODB_VERSION mongodb-org-mongos=$MONGODB_VERSION mongodb-org-tools=$MONGODB_VERSION
+    touch /etc/php5/mods-available/mongodb.ini
+    echo "extension=mongodb.so" >> /etc/php5/mods-available/mongodb.ini
     php5enmod mongodb
-    sudo pecl install mongodb
+    pecl install mongodb
     service apache2 restart
 }
 
 installMonodevelop(){
-    sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF
+    apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF
     echo "deb http://download.mono-project.com/repo/debian wheezy main" | sudo tee /etc/apt/sources.list.d/mono-xamarin.list
-    sudo apt-get update
-    sudo apt-get install mono-devel
+    apt-get update
+    apt-get install mono-devel
 }
 
 installKomodo(){
-    sudo add-apt-repository ppa:mystic-mirage/komodo-edit
-    sudo apt-get update
-    sudo apt-get install komodo-edit
+    add-apt-repository ppa:mystic-mirage/komodo-edit
+    apt-get update
+    apt-get install komodo-edit
 }
 
 installAudacious(){
-    sudo add-apt-repository ppa:nilarimogard/webupd8
-    sudo apt-get update
-    sudo apt-get install audacious audacious-plugins
+    add-apt-repository ppa:nilarimogard/webupd8
+    apt-get update
+    apt-get install audacious audacious-plugins
 }
 
 installGoogleChrome(){
-    sudo sh -c 'echo "deb http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list'
-    sudo apt-get update 
-    sudo apt-get install google-chrome-stable
+    sh -c 'echo "deb http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list'
+    apt-get update 
+    apt-get install google-chrome-stable
 }
 
 installSublimeText(){
-    sudo add-apt-repository ppa:webupd8team/sublime-text-3
-    sudo apt-get update
-    sudo apt-get sublime-text-installer
+    add-apt-repository ppa:webupd8team/sublime-text-3
+    apt-get update
+    apt-get sublime-text-installer
 }
 
 installPhuml(){
     cd /opt/
-    sudo git clone https://github.com/jakobwesthoff/phuml.git
+    git clone https://github.com/jakobwesthoff/phuml.git
     chmod +x /opt/phuml/src/app/phuml
     cd $OLDPWD
     
@@ -254,7 +263,7 @@ installDrush(){
     wget http://files.drush.org/drush.phar
     php drush.phar core-status
     chmod +x drush.phar
-    sudo mv drush.phar /usr/local/bin/drush
+    mv drush.phar /usr/local/bin/drush
     drush init
 }
 
