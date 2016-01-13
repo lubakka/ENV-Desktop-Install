@@ -13,7 +13,7 @@ fi
 
 DIR=$( pwd )
 
-ARGS=`getopt -o acjmdpkhwt --long auto,composer,jdk,mongodb,dotNet,packages,komodo,help,web \
+ARGS=`getopt -o acjmdpkhwt --long auto,composer,jdk,mongodb,dotNet,packages,komodo,help,web,drush \
      -n '$0' -- "$@"`
 
 if [ $? != 0 ] ; then echo "Terminating..." >&2 ; exit 1 ; fi
@@ -61,6 +61,9 @@ while true ; do
             ;;
         -t)
             installPhuml
+            ;;
+        --drush)
+            installDrush
             ;;
         \?)
             echo "Invalid option: -$OPTARG" >&2
