@@ -53,7 +53,7 @@ installCentOS(){
 }
 
 installPKG(){
-	if [ "$PKGSTOINSTALL_DEBIAN" != "" ]; then
+	if [[ "$PKGSTOINSTALL_DEBIAN" != "" && "$PKGSTOINSTALL_REDHEAD" != "" ]] ; then
 		echo -n "Some dependencies are missing. Want to install them? (Y/n): "
 		read SURE
 		if [[ $SURE = "Y" || $SURE = "y" ]]; then
@@ -69,20 +69,19 @@ installPKG(){
                     sed -i 's/#ServerName/ServerName/' /etc/apache2/apache2.conf
                 else
                     echo 'ServerName 127.0.0.1' >> /etc/apache2/apache2.conf
-               fi
-               service apache2 restart
+                fi
+                sudo service apache2 restart
             elif which yum &> /dev/null; then
                 installCentOSRPMPackages
-		yum install -y $PKGSTOINSTALL_REDHEAD
-               # yum replace php-common --replace-with=php56w-common
+                yum install -y $PKGSTOINSTALL_REDHEAD
                 systemctl start httpd.service
                 systemctl enable httpd.service
-		systemctl start mariadb.service
-		systemctl enable mariadb.service
+                systemctl start mariadb.service
+                systemctl enable mariadb.service
                 firewall-cmd --permanent --zone=public --add-service=http
                 systemctl restart firewalld.service
                 installCentOSScriptForApache
-		installCentOS
+                installCentOS
             fi
         fi
     fi

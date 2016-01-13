@@ -21,7 +21,7 @@ if [ $? != 0 ] ; then echo "Terminating..." >&2 ; exit 1 ; fi
 eval set -- "$ARGS"
 
 if [ -r includes/functions.sh ]; then
-	. ./includes/functions.sh
+	. $DIR/includes/functions.sh
 else
 	echo "Cannot open include file 'includes/functions.sh'">&2
 	exit 1
